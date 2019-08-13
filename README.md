@@ -13,3 +13,12 @@ git官方文档（服务器上的 Git - 生成 SSH 公钥）：https://git-scm.c
 
 Flyway是独立于数据库的应用、管理并跟踪数据库变更的数据库版本管理工具:https://flywaydb.org/getstarted/firststeps/maven#integrating-flyway
 
+okhttp官网网址：https://square.github.io/okhttp/  github网址：https://github.com/square/okhttp
+
+DTO代表服务层需要接收的数据和返回的数据，而VO代表展示层需要显示的数据:https://blog.csdn.net/zjrbiancheng/article/details/6253232
+
+Lombok官网：https://projectlombok.org/
+
+com.alibaba的fastjson简介:https://www.cnblogs.com/qiaoyeye/p/7730288.html
+
+
