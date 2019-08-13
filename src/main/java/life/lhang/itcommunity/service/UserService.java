@@ -12,6 +12,7 @@ public class UserService {
     private UserMapper userMapper;
 
     public void createOrUpdate(User user) {
+        //数据库中存储的旧账户数据
         List<User> users = userMapper.findByAccountId(user.getAccountId());
         if (users.size() == 0) {
             // 插入
@@ -21,12 +22,12 @@ public class UserService {
         } else {
             //更新
             User oldUser = users.get(0);
-            User updateUser = new User();
-            updateUser.setGmtModified(System.currentTimeMillis());
-            updateUser.setAvatarUrl(oldUser.getAvatarUrl());
-            updateUser.setName(oldUser.getName());
-            updateUser.setToken(oldUser.getToken());
-            userMapper.update(updateUser);
+            oldUser.setGmtModified(System.currentTimeMillis());
+            oldUser.setAvatarUrl(user.getAvatarUrl());
+            oldUser.setName(user.getName());
+            oldUser.setToken(user.getToken());
+            //将github返回的最新数据更新到数据库中。
+            userMapper.update(oldUser);
         }
     }
 }
