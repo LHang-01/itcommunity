@@ -1,9 +1,11 @@
 package life.lhang.itcommunity.mapper;
 
+import life.lhang.itcommunity.dto.QuestionQueryDTO;
 import life.lhang.itcommunity.mode.Question;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+
 
 import java.util.List;
 
@@ -17,6 +19,7 @@ public interface QuestionMapper{
 
     @Update("update question set gmt_modified=#{gmtModified}, title=#{title}, description=#{description},tag=#{tag} where id =#{id}")
     int update(Question updateQuestion);
+    
 
     /**
      * 此条语句可以对不含有特殊字符的语句进行模糊查询，
@@ -30,6 +33,15 @@ public interface QuestionMapper{
     @Update("update question set view_count = view_count + #{viewCount} where id =#{id}")
     void incView(Question question);
 
+    /**
+     * 增加评论数
+     * @param question
+     */
+    @Update("update question set comment_count = comment_count + #{commentCount} where id =#{id}")
+    void incCommentCount(Question question);
 
+    
+    Integer countBySearch(QuestionQueryDTO questionQueryDTO);
 
+    List<Question> selectBySearch(QuestionQueryDTO questionQueryDTO);
 }

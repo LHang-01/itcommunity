@@ -3,11 +3,12 @@
  */
 
 /**
- * 提交回复
+ * 提交一级评论（回复）
  */
 function post() {
     var questionId = $("#question_id").val();
     var content = $("#comment_content").val();
+    //1表示一级评论，即评论的是问题
     comment2target(questionId, 1, content);
 }
 
@@ -45,9 +46,14 @@ function comment2target(targetId, type, content) {
     });
 }
 
+/**
+ * 提交二级评论
+ * @param e
+ */
 function comment(e) {
     var commentId = e.getAttribute("data-id");
     var content = $("#input-" + commentId).val();
+    //2表示二级评论
     comment2target(commentId, 2, content);
 }
 
@@ -55,17 +61,22 @@ function comment(e) {
  * 展开二级评论
  */
 function collapseComments(e) {
+    //获取一级评论的id编号，从而获取页面所有id = <"#comment-" + id> 元素:
     var id = e.getAttribute("data-id");
     var comments = $("#comment-" + id);
 
     // 获取一下二级评论的展开状态
     var collapse = e.getAttribute("data-collapse");
+    //判断是否展开开了二级评论
     if (collapse) {
-        // 折叠二级评论
+        //若已经展开了，则将页面中已经展开的二级评论对象隐藏，即关闭二级评论
         comments.removeClass("in");
+        //给一级评论增加属性
         e.removeAttribute("data-collapse");
+        //从被选元素移除“active”类，即不高亮选中
         e.classList.remove("active");
     } else {
+        // 若没有，则展开二级评论，以下是拼接的二级评论html代码
         var subCommentContainer = $("#comment-" + id);
         if (subCommentContainer.children().length != 1) {
             //展开二级评论
@@ -74,8 +85,10 @@ function collapseComments(e) {
             e.setAttribute("data-collapse", "in");
             e.classList.add("active");
         } else {
+            //此处发出get请求
             $.getJSON("/comment/" + id, function (data) {
                 $.each(data.data.reverse(), function (index, comment) {
+                    //二级评论头像
                     var mediaLeftElement = $("<div/>", {
                         "class": "media-left"
                     }).append($("<img/>", {
@@ -83,6 +96,7 @@ function collapseComments(e) {
                         "src": comment.user.avatarUrl
                     }));
 
+                    //二级评论用户姓名、内容、创建日期
                     var mediaBodyElement = $("<div/>", {
                         "class": "media-body"
                     }).append($("<h5/>", {
@@ -97,9 +111,11 @@ function collapseComments(e) {
                         "html": moment(comment.gmtCreate).format('YYYY-MM-DD')
                     })));
 
+
                     var mediaElement = $("<div/>", {
                         "class": "media"
                     }).append(mediaLeftElement).append(mediaBodyElement);
+
 
                     var commentElement = $("<div/>", {
                         "class": "col-lg-12 col-md-12 col-sm-12 col-xs-12 comments"
@@ -109,8 +125,9 @@ function collapseComments(e) {
                 });
                 //展开二级评论
                 comments.addClass("in");
-                // 标记二级评论展开状态
+                //标记二级评论展开状态
                 e.setAttribute("data-collapse", "in");
+                //高亮选中样式
                 e.classList.add("active");
             });
         }

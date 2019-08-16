@@ -1,6 +1,8 @@
 package life.lhang.itcommunity.service;
 
+import life.lhang.itcommunity.dto.PaginationDTO;
 import life.lhang.itcommunity.dto.QuestionDTO;
+import life.lhang.itcommunity.dto.QuestionQueryDTO;
 import life.lhang.itcommunity.mapper.QuestionMapper;
 import life.lhang.itcommunity.mapper.UserMapper;
 import life.lhang.itcommunity.mode.Question;
@@ -24,23 +26,33 @@ public class QuestionService {
     @Autowired
     private UserMapper userMapper;
 
-    /*
+    /**
+     * 首页的问题列表
+     * @param search
+     * @param page
+     * @param size
+     * @return
+     */
     public PaginationDTO list(String search, Integer page, Integer size) {
 
+        //判断搜索框是否为空
         if (StringUtils.isNotBlank(search)) {
+            //以空格切分成数组
             String[] tags = StringUtils.split(search, " ");
             search = Arrays.stream(tags).collect(Collectors.joining("|"));
         }
 
-        PaginationDTO paginationDTO = new PaginationDTO();
-
-        Integer totalPage;
-
         QuestionQueryDTO questionQueryDTO = new QuestionQueryDTO();
         questionQueryDTO.setSearch(search);
 
-        Integer totalCount = questionExtMapper.countBySearch(questionQueryDTO);
+        //根据标题中是否含有搜索的词语来查询总条数
+        Integer totalCount = questionMapper.countBySearch(questionQueryDTO);
 
+
+        PaginationDTO paginationDTO = new PaginationDTO();
+
+        //总页数
+        Integer totalPage;
         if (totalCount % size == 0) {
             totalPage = totalCount / size;
         } else {
@@ -48,17 +60,24 @@ public class QuestionService {
         }
 
         if (page < 1) {
+            //若当前页面<1，为防止出错，则当前页=第一页
             page = 1;
         }
         if (page > totalPage) {
+            //若当前页面>总页数，为防止出错，则当前页=最后页
             page = totalPage;
         }
 
         paginationDTO.setPagination(totalPage, page);
+
+        //如果页面小于1，则从第0条开始查询；否则，从当前页的第一条数据开始查询
         Integer offset = page < 1 ? 0 : size * (page - 1);
+
         questionQueryDTO.setSize(size);
         questionQueryDTO.setPage(offset);
-        List<Question> questions = questionExtMapper.selectBySearch(questionQueryDTO);
+
+        //将questionQueryDTO作为参数传递过去查询满足要求的问题了列表
+        List<Question> questions = questionMapper.selectBySearch(questionQueryDTO);
         List<QuestionDTO> questionDTOList = new ArrayList<>();
 
         for (Question question : questions) {
@@ -73,6 +92,7 @@ public class QuestionService {
         return paginationDTO;
     }
 
+    /*
     public PaginationDTO list(Long userId, Integer page, Integer size) {
         PaginationDTO paginationDTO = new PaginationDTO();
 
@@ -116,7 +136,8 @@ public class QuestionService {
 
         paginationDTO.setData(questionDTOList);
         return paginationDTO;
-    }*/
+    }
+    */
 
     /**
      * 根据问题id查询问题信息，并将创建该问题的用户信息组合为DTO一并返回。

@@ -1,7 +1,10 @@
 package life.lhang.itcommunity.controller;
 
 
+import life.lhang.itcommunity.dto.CommentDTO;
 import life.lhang.itcommunity.dto.QuestionDTO;
+import life.lhang.itcommunity.enums.CommentTypeEnum;
+import life.lhang.itcommunity.service.CommentService;
 import life.lhang.itcommunity.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -21,8 +24,8 @@ public class QuestionController {
     @Autowired
     private QuestionService questionService;
 
-    //@Autowired
-    //private CommentService commentService;
+    @Autowired
+    private CommentService commentService;
 
     @GetMapping("/question/{id}")
     public String question(@PathVariable(name = "id") String id, Model model) {
@@ -37,11 +40,11 @@ public class QuestionController {
         //根据上一步返回的问题到数据库中查询有相同标签的问题列表
         List<QuestionDTO> relatedQuestions = questionService.selectRelated(questionDTO);
         //查询出该问题的一级评论
-        //List<CommentDTO> comments = commentService.listByTargetId(questionId, CommentTypeEnum.QUESTION);
+        List<CommentDTO> comments = commentService.listByTargetId(questionId, CommentTypeEnum.QUESTION);
         //累加阅读数
         questionService.incView(questionId);
         model.addAttribute("question", questionDTO);
-        //model.addAttribute("comments", comments);
+        model.addAttribute("comments", comments);
         model.addAttribute("relatedQuestions", relatedQuestions);
         return "question";
     }

@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class Comment {
 
-
+    //评论编号，自增
     private Long id;
 
     //一级评论或二级评论所属的问题编号

@@ -20,5 +20,15 @@ public interface UserMapper {
     void update(User user);
 
     @Select("select * from user where id = #{id}")
-    User selectByPrimaryKey(Long creator);
+    User selectByPrimaryKey(@Param("id") Long creator);
+
+
+    //网上说的都是扯淡，只要有foreach里有index就能直接使用参数名，正常运行
+    @Select("<script>" +"select * from user where id in "
+            +
+            "<foreach collection='userIds' index='index' item='item' open='(' separator=',' close=')'>" +
+            "#{item} "+
+            "</foreach>" +
+            "</script>")
+    List<User> selectByExample(@Param("userIds") List<Long> userIds);
 }
