@@ -5,9 +5,15 @@ import life.lhang.itcommunity.mapper.QuestionMapper;
 import life.lhang.itcommunity.mapper.UserMapper;
 import life.lhang.itcommunity.mode.Question;
 import life.lhang.itcommunity.mode.User;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class QuestionService {
@@ -112,6 +118,11 @@ public class QuestionService {
         return paginationDTO;
     }*/
 
+    /**
+     * 根据问题id查询问题信息，并将创建该问题的用户信息组合为DTO一并返回。
+     * @param id
+     * @return
+     */
     public QuestionDTO getById(Long id) {
         Question question = questionMapper.selectByPrimaryKey(id);
         if (question == null) {
@@ -125,7 +136,9 @@ public class QuestionService {
     }
 
     /**
-     *
+     *根据传入的问题id到数据库查找是否存在该问题编号，
+     * 如果存在，则说明属于修改原问题，直接update更新操作
+     * 不存在，则说明这是初次创建问题，直接insert插入操作
      * @param question
      */
     public void createOrUpdate(Question question) {
@@ -163,30 +176,33 @@ public class QuestionService {
         }
     }
 
-    /*
+
     public void incView(Long id) {
         Question question = new Question();
         question.setId(id);
         question.setViewCount(1);
-        questionExtMapper.incView(question);
+        questionMapper.incView(question);
     }
 
     public List<QuestionDTO> selectRelated(QuestionDTO queryDTO) {
+        //判断传入的问题DTO是否有标签，如果没有则返回空集合（即表示没有相关的问题）
         if (StringUtils.isBlank(queryDTO.getTag())) {
             return new ArrayList<>();
         }
+        //若传入的问题有标签，则将其标签用正则的方式到数据库中进行模糊查询,返回的相关问题列表不应包含本问题
         String[] tags = StringUtils.split(queryDTO.getTag(), ",");
         String regexpTag = Arrays.stream(tags).collect(Collectors.joining("|"));
         Question question = new Question();
         question.setId(queryDTO.getId());
         question.setTag(regexpTag);
+        List<Question> questions = questionMapper.selectRelated(question);
 
-        List<Question> questions = questionExtMapper.selectRelated(question);
+        //将模糊查询返回的相关问题（question）列表，转换为questionDTO列表
         List<QuestionDTO> questionDTOS = questions.stream().map(q -> {
             QuestionDTO questionDTO = new QuestionDTO();
             BeanUtils.copyProperties(q, questionDTO);
             return questionDTO;
         }).collect(Collectors.toList());
         return questionDTOS;
-    }*/
+    }
 }
