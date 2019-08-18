@@ -21,6 +21,12 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
+    /**
+     * 在前端页面提交一级评论和二级评论时，post请求到此
+     * @param commentCreateDTO
+     * @param request
+     * @return
+     */
     @ResponseBody
     @RequestMapping(value = "/comment", method = RequestMethod.POST)
     public Object post(@RequestBody CommentCreateDTO commentCreateDTO,

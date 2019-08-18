@@ -12,9 +12,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,7 +43,7 @@ public class QuestionService {
         QuestionQueryDTO questionQueryDTO = new QuestionQueryDTO();
         questionQueryDTO.setSearch(search);
 
-        //根据标题中是否含有搜索的词语来查询总条数
+        //根据标题中是否含有搜索的词语来查询总条数，有可能查询出来为空表，此时的page=0
         Integer totalCount = questionMapper.countBySearch(questionQueryDTO);
 
 
@@ -70,13 +68,13 @@ public class QuestionService {
 
         paginationDTO.setPagination(totalPage, page);
 
-        //如果页面小于1，则从第0条开始查询；否则，从当前页的第一条数据开始查询
+        //如果页面小于1（即查询出来为空表时页面=0），起始条数=0（防止offset计算结果<0）；否则起始数=size * (page - 1)，即当前页的第一条数据编号
         Integer offset = page < 1 ? 0 : size * (page - 1);
 
         questionQueryDTO.setSize(size);
         questionQueryDTO.setPage(offset);
 
-        //将questionQueryDTO作为参数传递过去查询满足要求的问题了列表
+        //将questionQueryDTO作为参数传递过去查询满足要求的问题分页列表
         List<Question> questions = questionMapper.selectBySearch(questionQueryDTO);
         List<QuestionDTO> questionDTOList = new ArrayList<>();
 
@@ -92,17 +90,25 @@ public class QuestionService {
         return paginationDTO;
     }
 
-    /*
+    /**
+     * 查询用户id = userId 的 page 页信息，页面大小为size
+     * @param userId 用户id
+     * @param page 分页查询的起始条
+     * @param size 页面大小
+     * @return
+     */
     public PaginationDTO list(Long userId, Integer page, Integer size) {
+
+        //查询userid用户的发布问题总数
+        Question questionExample = new Question();
+        questionExample.setCreator(userId);
+        //有可能查询出来没数据，也就是空表
+        Integer totalCount = questionMapper.countByExample(questionExample);
+
         PaginationDTO paginationDTO = new PaginationDTO();
 
+        //总页数
         Integer totalPage;
-
-        QuestionExample questionExample = new QuestionExample();
-        questionExample.createCriteria()
-                .andCreatorEqualTo(userId);
-        Integer totalCount = (int) questionMapper.countByExample(questionExample);
-
         if (totalCount % size == 0) {
             totalPage = totalCount / size;
         } else {
@@ -118,12 +124,14 @@ public class QuestionService {
 
         paginationDTO.setPagination(totalPage, page);
 
-        //size*(page-1)
-        Integer offset = size * (page - 1);
-        QuestionExample example = new QuestionExample();
-        example.createCriteria()
-                .andCreatorEqualTo(userId);
-        List<Question> questions = questionMapper.selectByExampleWithRowbounds(example, new RowBounds(offset, size));
+        //当当前用户没提过问时，即page=0，offset=-5,为了避免这种情况，如果页面小于1（即查询出来为空表时页面=0），
+        //则起始条数=0（防止offset计算结果<0）；否则起始数=size * (page - 1)，即当前页的第一条数据编号
+        Integer offset = page < 1 ? 0 : size * (page - 1);
+        Map param = new HashMap();
+        param.put("userId", userId);
+        param.put("offset", offset);
+        param.put("size", size);
+        List<Question> questions = questionMapper.selectByUserIdWithRowbounds(param);
         List<QuestionDTO> questionDTOList = new ArrayList<>();
 
         for (Question question : questions) {
@@ -137,7 +145,7 @@ public class QuestionService {
         paginationDTO.setData(questionDTOList);
         return paginationDTO;
     }
-    */
+
 
     /**
      * 根据问题id查询问题信息，并将创建该问题的用户信息组合为DTO一并返回。
@@ -205,6 +213,11 @@ public class QuestionService {
         questionMapper.incView(question);
     }
 
+    /**
+     * 查找与传入的问题具有相同标签的问题List
+     * @param queryDTO
+     * @return
+     */
     public List<QuestionDTO> selectRelated(QuestionDTO queryDTO) {
         //判断传入的问题DTO是否有标签，如果没有则返回空集合（即表示没有相关的问题）
         if (StringUtils.isBlank(queryDTO.getTag())) {
@@ -216,6 +229,7 @@ public class QuestionService {
         Question question = new Question();
         question.setId(queryDTO.getId());
         question.setTag(regexpTag);
+        //此处正则模糊查询时可能出错
         List<Question> questions = questionMapper.selectRelated(question);
 
         //将模糊查询返回的相关问题（question）列表，转换为questionDTO列表

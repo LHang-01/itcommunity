@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Update;
 
 
 import java.util.List;
+import java.util.Map;
 
 public interface QuestionMapper{
 
@@ -40,8 +41,28 @@ public interface QuestionMapper{
     @Update("update question set comment_count = comment_count + #{commentCount} where id =#{id}")
     void incCommentCount(Question question);
 
-    
+    @Select("<script>" +"select count(*) from question"
+            +"<where>"
+            +"<if test=\"search != null and search != ''\">"
+            +"and title regexp #{search}"
+            +"</if>"
+            +"</where>"
+            +"</script>")
     Integer countBySearch(QuestionQueryDTO questionQueryDTO);
 
+    @Select("<script>" +"select * from question "
+            +"<where>"
+            +"<if test=\"search != null and search != ''\">"
+            +"and title regexp #{search}"
+            +"</if>"
+            +"</where>"
+            +"order by gmt_create desc limit #{page},#{size}"
+            +"</script>")
     List<Question> selectBySearch(QuestionQueryDTO questionQueryDTO);
+
+    @Select("select count(*) from question where creator  = #{creator}")
+    Integer countByExample(Question questionExample);
+
+    @Select("select * from question where creator = #{userId} limit #{offset},#{size}")
+    List<Question> selectByUserIdWithRowbounds(Map param);
 }

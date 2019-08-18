@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface CommentMapper {
 
-    @Select("select * from comment where parent_id = #{id} and type = #{type} order by #{gmtCreate} desc")
+    @Select("select * from comment where parent_id = #{parentId} and type = #{type} order by #{gmtCreate} desc")
     List<Comment> selectByExample(Comment comment);
 
     @Insert("insert into comment (id, parent_id, type, commentator, gmt_create, gmt_modified, like_count, content, comment_count) values (#{id}, #{parentId}, #{type}, #{commentator}, #{gmtCreate}, #{gmtModified}, #{likeCount}, #{content}, #{commentCount}) ")

@@ -2,10 +2,14 @@ package life.lhang.itcommunity.service;
 
 import life.lhang.itcommunity.dto.CommentDTO;
 import life.lhang.itcommunity.enums.CommentTypeEnum;
+import life.lhang.itcommunity.enums.NotificationStatusEnum;
+import life.lhang.itcommunity.enums.NotificationTypeEnum;
 import life.lhang.itcommunity.mapper.CommentMapper;
+import life.lhang.itcommunity.mapper.NotificationMapper;
 import life.lhang.itcommunity.mapper.QuestionMapper;
 import life.lhang.itcommunity.mapper.UserMapper;
 import life.lhang.itcommunity.mode.Comment;
+import life.lhang.itcommunity.mode.Notification;
 import life.lhang.itcommunity.mode.Question;
 import life.lhang.itcommunity.mode.User;
 import org.springframework.beans.BeanUtils;
@@ -34,13 +38,13 @@ public class CommentService {
     @Autowired
     private UserMapper userMapper;
 
-    //@Autowired
-    //private NotificationMapper notificationMapper;
+    @Autowired
+    private NotificationMapper notificationMapper;
 
     /**
-     *
-     * @param comment
-     * @param commentator
+     * 向数据库中插入评论和通知
+     * @param comment 评论的内容
+     * @param commentator 评论人
      */
     @Transactional
     public void insert(Comment comment, User commentator) {
@@ -66,16 +70,17 @@ public class CommentService {
                 //throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
             }
 
+            //插入评论到数据库中
             commentMapper.insert(comment);
 
-            // 增加评论数
+            // 增加一级评论的二级评论数量
             Comment parentComment = new Comment();
             parentComment.setId(comment.getParentId());
             parentComment.setCommentCount(1);
             commentMapper.incCommentCount(parentComment);
 
             // 创建通知
-            //createNotify(comment, dbComment.getCommentator(), commentator.getName(), question.getTitle(), NotificationTypeEnum.REPLY_COMMENT, question.getId());
+            createNotify(comment, dbComment.getCommentator(), commentator.getName(), question.getTitle(), NotificationTypeEnum.REPLY_COMMENT, question.getId());
         } else {
             // 回复问题（一级评论）
             Question question = questionMapper.selectByPrimaryKey(comment.getParentId());
@@ -91,15 +96,17 @@ public class CommentService {
             questionMapper.incCommentCount(question);
 
             // 创建通知
-            //createNotify(comment, question.getCreator(), commentator.getName(), question.getTitle(), NotificationTypeEnum.REPLY_QUESTION, question.getId());
+            createNotify(comment, question.getCreator(), commentator.getName(), question.getTitle(), NotificationTypeEnum.REPLY_QUESTION, question.getId());
         }
     }
 
-    /*
+
     private void createNotify(Comment comment, Long receiver, String notifierName, String outerTitle, NotificationTypeEnum notificationType, Long outerId) {
-        if (receiver == comment.getCommentator()) {
-            return;
-        }
+        //如果接收者就是评论的创建者，即自己给自己评论，就不创建通知了
+
+        //if (receiver == comment.getCommentator()) {
+        //    return;
+        //}
         Notification notification = new Notification();
         notification.setGmtCreate(System.currentTimeMillis());
         notification.setType(notificationType.getType());
@@ -111,13 +118,18 @@ public class CommentService {
         notification.setOuterTitle(outerTitle);
         notificationMapper.insert(notification);
     }
-    */
 
-    //
+
+    /**
+     * 查询出传入问题的一级评论
+     * @param id question.id
+     * @param type CommentTypeEnum.QUESTION 一级评论类型
+     * @return
+     */
     public List<CommentDTO> listByTargetId(Long id, CommentTypeEnum type) {
-        //查询数据库中父编号=id并且评论类型=传入的评论类型的评论列表
+        //查询数据库中父编号=id，并且评论类型=传入的评论类型的评论列表
         Comment commentExample = new Comment();
-        commentExample.setId(id);
+        commentExample.setParentId(id);
         commentExample.setType(type.getType());
         List<Comment> comments = commentMapper.selectByExample(commentExample);
 

@@ -21,7 +21,7 @@
 
             <!--判断“我的问题”列表还是“最新回复”列表-->
 
-            <--“我的问题”列表，与首页的问题列表展示类似-->
+            <!--“我的问题”列表，与首页的问题列表展示类似-->
             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" th:if="${section == 'questions'}">
                 <div class="media" th:each="question : ${pagination.data}">
                     <!--提问者的头像，也就是我-->
@@ -48,7 +48,7 @@
                     </div>
                 </div>
             </div>
-            <--“最新回复”列表-->
+            <!--“最新回复”列表-->
             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" th:if="${section == 'replies'}">
                 <div class="media" th:each="notification : ${pagination.data}">
                     <!--回复者的名字，回复类型（一级评论还是二级评论），回复的问题title，通知的状态（已读还是未读）-->

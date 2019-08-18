@@ -1,7 +1,9 @@
 package life.lhang.itcommunity.interceptor;
 
+import life.lhang.itcommunity.mapper.NotificationMapper;
 import life.lhang.itcommunity.mapper.UserMapper;
 import life.lhang.itcommunity.mode.User;
+import life.lhang.itcommunity.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
@@ -24,6 +26,10 @@ public class SessionInterceptor implements HandlerInterceptor {
     @Value("${github.redirect.uri}")
     private String redirectUri;
 
+    @Autowired
+    private NotificationService notificationService;
+
+
     //这个方法是在访问接口之前执行的，在这里写验证登陆状态的业务逻辑，就可以在用户调用指定接口之前验证登陆状态了
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -35,10 +41,11 @@ public class SessionInterceptor implements HandlerInterceptor {
                 if (cookie.getName().equals("token")) {
                     String token = cookie.getValue();
                     List<User> users = userMapper.findByToken(token);
+                    //把用户和未读消息数放入session中
                     if (users.size() != 0) {
                         request.getSession().setAttribute("user", users.get(0));
-                        //Long unreadCount = notificationService.unreadCount(users.get(0).getId());
-                        //request.getSession().setAttribute("unreadCount", unreadCount);
+                        Long unreadCount = notificationService.unreadCount(users.get(0).getId());
+                        request.getSession().setAttribute("unreadCount", unreadCount);
                     }
                     break;
                 }
