@@ -4,6 +4,8 @@ package life.lhang.itcommunity.controller;
 import life.lhang.itcommunity.dto.CommentDTO;
 import life.lhang.itcommunity.dto.QuestionDTO;
 import life.lhang.itcommunity.enums.CommentTypeEnum;
+import life.lhang.itcommunity.exception.CustomizeErrorCode;
+import life.lhang.itcommunity.exception.CustomizeException;
 import life.lhang.itcommunity.service.CommentService;
 import life.lhang.itcommunity.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,7 @@ import java.util.List;
 
 
 /**
- * Created by codedrinker on 2019/5/21.
+ *
  */
 @Controller
 public class QuestionController {
@@ -27,13 +29,23 @@ public class QuestionController {
     @Autowired
     private CommentService commentService;
 
+    /**
+     * 当用户访问问题详情页面时进入此方法
+     * 情况一：点击首页（index.html）上的某一条问题进入
+     * 情况二：点击profile.html页面上“我的问题”或“最新回复”列表上的某一条问题进入
+     * 情况三：点击question.html页面上“相关问题”列表上的某一条问题进入
+     * @param id
+     * @param model
+     * @return
+     */
     @GetMapping("/question/{id}")
     public String question(@PathVariable(name = "id") String id, Model model) {
         Long questionId = null;
         try {
             questionId = Long.parseLong(id);
         } catch (NumberFormatException e) {
-            //throw new CustomizeException(CustomizeErrorCode.INVALID_INPUT);
+            //id无法转换为long型时->非法输入
+            throw new CustomizeException(CustomizeErrorCode.INVALID_INPUT);
         }
         //拿到问题和创建者的组合信息对象
         QuestionDTO questionDTO = questionService.getById(questionId);

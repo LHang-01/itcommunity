@@ -4,6 +4,7 @@ import life.lhang.itcommunity.dto.CommentCreateDTO;
 import life.lhang.itcommunity.dto.CommentDTO;
 import life.lhang.itcommunity.dto.ResultDTO;
 import life.lhang.itcommunity.enums.CommentTypeEnum;
+import life.lhang.itcommunity.exception.CustomizeErrorCode;
 import life.lhang.itcommunity.mode.Comment;
 import life.lhang.itcommunity.mode.User;
 import life.lhang.itcommunity.service.CommentService;
@@ -34,12 +35,12 @@ public class CommentController {
         User user = (User) request.getSession().getAttribute("user");
         if (user == null) {
             //用户未登录
-            //return ResultDTO.errorOf(CustomizeErrorCode.NO_LOGIN);
+            return ResultDTO.errorOf(CustomizeErrorCode.NO_LOGIN);
         }
 
         if (commentCreateDTO == null || StringUtils.isBlank(commentCreateDTO.getContent())) {
             //缺少评论内容
-            //return ResultDTO.errorOf(CustomizeErrorCode.CONTENT_IS_EMPTY);
+            return ResultDTO.errorOf(CustomizeErrorCode.CONTENT_IS_EMPTY);
         }
 
         //将评论内容和评论人一起传给服务层处理

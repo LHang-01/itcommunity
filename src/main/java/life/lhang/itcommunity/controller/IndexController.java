@@ -15,6 +15,14 @@ public class IndexController{
     @Autowired
     private QuestionService questionService;
 
+    /**
+     * 首页分页问题列表查询
+     * @param model
+     * @param page
+     * @param size
+     * @param search
+     * @return
+     */
     @GetMapping("/")
     public String index(Model model,
                         @RequestParam(name = "page", defaultValue = "1") Integer page,

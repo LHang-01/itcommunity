@@ -4,6 +4,8 @@ import life.lhang.itcommunity.dto.NotificationDTO;
 import life.lhang.itcommunity.dto.PaginationDTO;
 import life.lhang.itcommunity.enums.NotificationStatusEnum;
 import life.lhang.itcommunity.enums.NotificationTypeEnum;
+import life.lhang.itcommunity.exception.CustomizeErrorCode;
+import life.lhang.itcommunity.exception.CustomizeException;
 import life.lhang.itcommunity.mapper.NotificationMapper;
 import life.lhang.itcommunity.mode.Notification;
 import life.lhang.itcommunity.mode.User;
@@ -14,7 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 /**
- * Created by codedrinker on 2019/6/14.
+ *
  */
 @Service
 public class NotificationService {
@@ -80,6 +82,11 @@ public class NotificationService {
         return paginationDTO;
     }
 
+    /**
+     * 查询userID的所有未读通知的数量
+     * @param userId
+     * @return
+     */
     public Long unreadCount(Long userId) {
         Notification notification = new Notification();
         notification.setReceiver(userId);
@@ -97,11 +104,13 @@ public class NotificationService {
         //查询数据库中编号为id的通知是否存在
         Notification notification = notificationMapper.selectByPrimaryKey(id);
         if (notification == null) {
-            //throw new CustomizeException(CustomizeErrorCode.NOTIFICATION_NOT_FOUND);
+            //通知不存在->消息莫非是不翼而飞了？
+            throw new CustomizeException(CustomizeErrorCode.NOTIFICATION_NOT_FOUND);
         }
         //判断通知的接受者是否等于当前登录的用户
         if (!Objects.equals(notification.getReceiver(), user.getId())) {
-            //throw new CustomizeException(CustomizeErrorCode.READ_NOTIFICATION_FAIL);
+            //当前用户不是通知的接收者->"兄弟你这是读别人的信息呢？"
+            throw new CustomizeException(CustomizeErrorCode.READ_NOTIFICATION_FAIL);
         }
 
         //将此条通知标记为已读

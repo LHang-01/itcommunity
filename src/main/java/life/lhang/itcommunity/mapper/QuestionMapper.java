@@ -34,10 +34,6 @@ public interface QuestionMapper{
     @Update("update question set view_count = view_count + #{viewCount} where id =#{id}")
     void incView(Question question);
 
-    /**
-     * 增加评论数
-     * @param question
-     */
     @Update("update question set comment_count = comment_count + #{commentCount} where id =#{id}")
     void incCommentCount(Question question);
 

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Created by codedrinker on 2019/6/14.
+ *
  */
 @Controller
 public class NotificationController {
@@ -21,7 +21,7 @@ public class NotificationController {
     private NotificationService notificationService;
 
     /**
-     *
+     * 当点击最新回复页面上的某一条通知（回复）,则进入此方法，返回相关问题的详情页面
      * @param request
      * @param id
      * @return

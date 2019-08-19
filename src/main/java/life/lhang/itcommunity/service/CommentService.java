@@ -4,6 +4,8 @@ import life.lhang.itcommunity.dto.CommentDTO;
 import life.lhang.itcommunity.enums.CommentTypeEnum;
 import life.lhang.itcommunity.enums.NotificationStatusEnum;
 import life.lhang.itcommunity.enums.NotificationTypeEnum;
+import life.lhang.itcommunity.exception.CustomizeErrorCode;
+import life.lhang.itcommunity.exception.CustomizeException;
 import life.lhang.itcommunity.mapper.CommentMapper;
 import life.lhang.itcommunity.mapper.NotificationMapper;
 import life.lhang.itcommunity.mapper.QuestionMapper;
@@ -24,7 +26,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Created by codedrinker on 2019/5/31.
+ *
  */
 @Service
 public class CommentService {
@@ -49,31 +51,31 @@ public class CommentService {
     @Transactional
     public void insert(Comment comment, User commentator) {
         if (comment.getParentId() == null || comment.getParentId() == 0) {
-            //评论的父编号为空
-            //throw new CustomizeException(CustomizeErrorCode.TARGET_PARAM_NOT_FOUND);
+            //评论的父编号为空->未选中任何问题或评论进行回复
+            throw new CustomizeException(CustomizeErrorCode.TARGET_PARAM_NOT_FOUND);
         }
         if (comment.getType() == null || !CommentTypeEnum.isExist(comment.getType())) {
-            //评论的类型为空
-            //throw new CustomizeException(CustomizeErrorCode.TYPE_PARAM_WRONG);
+            //评论的类型为空->评论类型错误或不存在
+            throw new CustomizeException(CustomizeErrorCode.TYPE_PARAM_WRONG);
         }
         if (comment.getType() == CommentTypeEnum.COMMENT.getType()) {
             // 回复评论(二级评论)
             Comment dbComment = commentMapper.selectByPrimaryKey(comment.getParentId());
             if (dbComment == null) {
-                //该二级评论评论的一级评论找不到
-                //throw new CustomizeException(CustomizeErrorCode.COMMENT_NOT_FOUND);
+                //该二级评论评论的一级评论找不到->回复的评论不存在了，要不要换个试试？
+                throw new CustomizeException(CustomizeErrorCode.COMMENT_NOT_FOUND);
             }
 
             Question question = questionMapper.selectByPrimaryKey(dbComment.getParentId());
             if (question == null) {
-                //该二级评论评论的一级评论所评论的问题找不到
-                //throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+                //该二级评论评论的一级评论所评论的问题找不到->你找的问题不在了，要不要换个试试？
+                throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
             }
 
             //插入评论到数据库中
             commentMapper.insert(comment);
 
-            // 增加一级评论的二级评论数量
+            // 增加一级评论的评论数量
             Comment parentComment = new Comment();
             parentComment.setId(comment.getParentId());
             parentComment.setCommentCount(1);
@@ -85,13 +87,13 @@ public class CommentService {
             // 回复问题（一级评论）
             Question question = questionMapper.selectByPrimaryKey(comment.getParentId());
             if (question == null) {
-                //评论的问题没找到
-                //throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+                //评论的问题没找到->你找的问题不在了，要不要换个试试？
+                throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
             }
             //初始化一级评论的评论数
             comment.setCommentCount(0);
             commentMapper.insert(comment);
-            //增加问题的一级评论数
+            //增加问题的评论数
             question.setCommentCount(1);
             questionMapper.incCommentCount(question);
 
@@ -100,13 +102,21 @@ public class CommentService {
         }
     }
 
-
+    /**
+     * 创建通知
+     * @param comment 评论
+     * @param receiver 接收者id
+     * @param notifierName 通知者名字
+     * @param outerTitle 所评论的问题或者所评论的评论所属于的问题的题目
+     * @param notificationType 评论类型
+     * @param outerId 问题的id
+     */
     private void createNotify(Comment comment, Long receiver, String notifierName, String outerTitle, NotificationTypeEnum notificationType, Long outerId) {
         //如果接收者就是评论的创建者，即自己给自己评论，就不创建通知了
 
-        //if (receiver == comment.getCommentator()) {
-        //    return;
-        //}
+        if (receiver == comment.getCommentator()) {
+            return;
+        }
         Notification notification = new Notification();
         notification.setGmtCreate(System.currentTimeMillis());
         notification.setType(notificationType.getType());
@@ -122,8 +132,8 @@ public class CommentService {
 
     /**
      * 查询出传入问题的一级评论
-     * @param id question.id
-     * @param type CommentTypeEnum.QUESTION 一级评论类型
+     * @param id question.id or comment.id
+     * @param type CommentTypeEnum.QUESTION 一级评论类型 or CommentTypeEnum.COMMENT
      * @return
      */
     public List<CommentDTO> listByTargetId(Long id, CommentTypeEnum type) {

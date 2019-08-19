@@ -1,5 +1,7 @@
 package life.lhang.itcommunity.dto;
 
+import life.lhang.itcommunity.exception.CustomizeErrorCode;
+import life.lhang.itcommunity.exception.CustomizeException;
 import lombok.Data;
 
 /**
@@ -11,7 +13,7 @@ public class ResultDTO<T> {
     private String message;
     private T data;
 
-    /*
+
     public static ResultDTO errorOf(Integer code, String message) {
         ResultDTO resultDTO = new ResultDTO();
         resultDTO.setCode(code);
@@ -19,15 +21,24 @@ public class ResultDTO<T> {
         return resultDTO;
     }
 
-
+    /**
+     * 自定义的异常（可预知的）
+     * @param errorCode
+     * @return
+     */
     public static ResultDTO errorOf(CustomizeErrorCode errorCode) {
         return errorOf(errorCode.getCode(), errorCode.getMessage());
     }
 
+    /**
+     * 运行时异常
+     * @param e
+     * @return
+     */
     public static ResultDTO errorOf(CustomizeException e) {
         return errorOf(e.getCode(), e.getMessage());
     }
-    */
+
     public static ResultDTO okOf() {
         ResultDTO resultDTO = new ResultDTO();
         resultDTO.setCode(200);

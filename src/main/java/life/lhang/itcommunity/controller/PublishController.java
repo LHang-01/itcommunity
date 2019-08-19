@@ -22,6 +22,12 @@ public class PublishController {
     @Autowired
     private QuestionService questionService;
 
+    /**
+     * 将question.id=传入的id 的问题 信息返回到发布页面，供用户修改问题。
+     * @param id 问题id
+     * @param model
+     * @return
+     */
     @GetMapping("/publish/{id}")
     public String edit(@PathVariable(name = "id") Long id,
                        Model model) {
@@ -34,13 +40,27 @@ public class PublishController {
         return "publish";
     }
 
-
+    /**
+     * 返回空白的发布页面，供用户提交新问题
+     * @param model
+     * @return
+     */
     @GetMapping("/publish")
     public String publish(Model model) {
         model.addAttribute("tags", TagCache.get());
         return "publish";
     }
 
+    /**
+     * 将用户修改的问题或提交的新问题存入数据库中
+     * @param title
+     * @param description
+     * @param tag
+     * @param id
+     * @param request
+     * @param model
+     * @return
+     */
     @PostMapping("/publish")
     public String doPublish(
             @RequestParam(value = "title", required = false) String title,

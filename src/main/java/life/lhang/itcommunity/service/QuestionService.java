@@ -3,6 +3,8 @@ package life.lhang.itcommunity.service;
 import life.lhang.itcommunity.dto.PaginationDTO;
 import life.lhang.itcommunity.dto.QuestionDTO;
 import life.lhang.itcommunity.dto.QuestionQueryDTO;
+import life.lhang.itcommunity.exception.CustomizeErrorCode;
+import life.lhang.itcommunity.exception.CustomizeException;
 import life.lhang.itcommunity.mapper.QuestionMapper;
 import life.lhang.itcommunity.mapper.UserMapper;
 import life.lhang.itcommunity.mode.Question;
@@ -26,16 +28,16 @@ public class QuestionService {
 
     /**
      * 首页的问题列表
-     * @param search
-     * @param page
-     * @param size
+     * @param search 搜索框输入的内容
+     * @param page 当前页
+     * @param size 页面大小
      * @return
      */
     public PaginationDTO list(String search, Integer page, Integer size) {
 
         //判断搜索框是否为空
         if (StringUtils.isNotBlank(search)) {
-            //以空格切分成数组
+            //以空格切分成数组，再用"|"连接起来，方便正则运算
             String[] tags = StringUtils.split(search, " ");
             search = Arrays.stream(tags).collect(Collectors.joining("|"));
         }
@@ -45,7 +47,6 @@ public class QuestionService {
 
         //根据标题中是否含有搜索的词语来查询总条数，有可能查询出来为空表，此时的page=0
         Integer totalCount = questionMapper.countBySearch(questionQueryDTO);
-
 
         PaginationDTO paginationDTO = new PaginationDTO();
 
@@ -153,19 +154,22 @@ public class QuestionService {
      * @return
      */
     public QuestionDTO getById(Long id) {
+        //根据问题id查询问题信息
         Question question = questionMapper.selectByPrimaryKey(id);
         if (question == null) {
-            //throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+            //数据库中不存在该问题->你找的问题不在了，要不要换个试试？
+            throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
         }
         QuestionDTO questionDTO = new QuestionDTO();
         BeanUtils.copyProperties(question, questionDTO);
+        //根据问题的创建者id查询用户信息
         User user = userMapper.selectByPrimaryKey(question.getCreator());
         questionDTO.setUser(user);
         return questionDTO;
     }
 
     /**
-     *根据传入的问题id到数据库查找是否存在该问题编号，
+     * 根据传入的问题id到数据库查找是否存在该问题编号，
      * 如果存在，则说明属于修改原问题，直接update更新操作
      * 不存在，则说明这是初次创建问题，直接insert插入操作
      * @param question
@@ -183,13 +187,13 @@ public class QuestionService {
             // 更新
             Question dbQuestion = questionMapper.selectByPrimaryKey(question.getId());
             if (dbQuestion == null) {
-                //没找到问题
-                //throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+                //没找到问题->你找的问题不在了，要不要换个试试？
+                throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
             }
 
             if (dbQuestion.getCreator().longValue() != question.getCreator().longValue()) {
-                //数据库中的该问题创建者和目前正在编辑的用户不是同一个人
-                //throw new CustomizeException(CustomizeErrorCode.INVALID_OPERATION);
+                //数据库中的该问题创建者和目前正在编辑的用户不是同一个人->兄弟，是不是走错房间了？
+                throw new CustomizeException(CustomizeErrorCode.INVALID_OPERATION);
             }
 
             Question updateQuestion = new Question();
@@ -200,12 +204,16 @@ public class QuestionService {
             updateQuestion.setId(question.getId());
             int updated = questionMapper.update(updateQuestion);
             if (updated != 1) {
-                //throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+                //更新id=updateQuestion.id的问题出错->你找的问题不在了，要不要换个试试？
+                throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
             }
         }
     }
 
-
+    /**
+     * 增加问题的浏览数
+     * @param id
+     */
     public void incView(Long id) {
         Question question = new Question();
         question.setId(id);

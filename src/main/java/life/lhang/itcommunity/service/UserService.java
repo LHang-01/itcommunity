@@ -11,6 +11,10 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
+    /**
+     * 当数据库中有该用户时更新用户信息，当数据库中没有该用户时创建新用户。
+     * @param user
+     */
     public void createOrUpdate(User user) {
         //数据库中存储的旧账户数据
         List<User> users = userMapper.findByAccountId(user.getAccountId());

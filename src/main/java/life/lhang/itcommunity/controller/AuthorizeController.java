@@ -34,6 +34,13 @@ public class AuthorizeController{
     @Value("http://localhost:11777/callback")
     private String redirectUri;
 
+    /**
+     * github第三方授权登录
+     * @param code
+     * @param state
+     * @param response
+     * @return
+     */
     @GetMapping("/callback")
     public String callback(@RequestParam(name = "code") String code,
                            @RequestParam(name = "state") String state,
@@ -70,6 +77,12 @@ public class AuthorizeController{
 
     }
 
+    /**
+     * 退出第三方登录
+     * @param request
+     * @param response
+     * @return
+     */
     @GetMapping("/logout")
     public String logout(HttpServletRequest request,
                          HttpServletResponse response) {
