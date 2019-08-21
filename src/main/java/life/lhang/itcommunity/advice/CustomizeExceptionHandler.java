@@ -47,9 +47,11 @@ public class CustomizeExceptionHandler {
             ResultDTO resultDTO;
             // 返回 JSON
             if (e instanceof CustomizeException) {
+                //如果异常不属于我自定义/预测的异常，设置相应的异常信息
                 resultDTO = ResultDTO.errorOf((CustomizeException) e);
             } else {
-                //log.error("handle error", e);
+                //异常属于我自定义/预测的异常，设置相应的异常信息返回给前台，并且需要将其打印到日志中
+                log.error("handle error", e);
                 resultDTO = ResultDTO.errorOf(CustomizeErrorCode.SYS_ERROR);
             }
             try {
@@ -65,11 +67,11 @@ public class CustomizeExceptionHandler {
         } else {
             // 错误页面跳转
             if (e instanceof CustomizeException) {
-                //如果异常属于我自定义的异常，设置相应的异常信息
+                //异常不是我自定义/预测的异常，而是如service、dao等向上抛出的异常（非预测），设置抛出的异常信息，返回给前台
                 model.addAttribute("message", e.getMessage());
             } else {
-                //只要异常不是我自定义的异常，设置统一的异常信息
-                //log.error("handle error", e);
+                //如果异常属于我自定义/预测的异常，需要将其打印到日志中
+                log.error("handle error", e);
                 model.addAttribute("message", CustomizeErrorCode.SYS_ERROR.getMessage());
             }
             return new ModelAndView("error");

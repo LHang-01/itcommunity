@@ -39,7 +39,13 @@ public class QuestionService {
         if (StringUtils.isNotBlank(search)) {
             //以空格切分成数组，再用"|"连接起来，方便正则运算
             String[] tags = StringUtils.split(search, " ");
-            search = Arrays.stream(tags).collect(Collectors.joining("|"));
+            //因为在+、*、？在正则sql查询中会出现异常，所以查询时简单替换了
+            search = Arrays
+                    .stream(tags)
+                    .filter(StringUtils::isNotBlank)
+                    .map(t ->  t.replace("+", "").replace("*", "").replace("?", ""))
+                    .filter(StringUtils::isNotBlank)
+                    .collect(Collectors.joining("|"));
         }
 
         QuestionQueryDTO questionQueryDTO = new QuestionQueryDTO();
@@ -233,7 +239,13 @@ public class QuestionService {
         }
         //若传入的问题有标签，则将其标签用正则的方式到数据库中进行模糊查询,返回的相关问题列表不应包含本问题
         String[] tags = StringUtils.split(queryDTO.getTag(), ",");
-        String regexpTag = Arrays.stream(tags).collect(Collectors.joining("|"));
+        //因为在+、*、？在正则sql查询中会出现异常，所以查询时简单删除了特殊符号
+        String regexpTag = Arrays
+                .stream(tags)
+                .filter(StringUtils::isNotBlank)
+                .map(t -> t.replace("+", "").replace("*", "").replace("?", ""))
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.joining("|"));
         Question question = new Question();
         question.setId(queryDTO.getId());
         question.setTag(regexpTag);

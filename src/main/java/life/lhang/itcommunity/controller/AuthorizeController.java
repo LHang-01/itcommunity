@@ -25,13 +25,13 @@ public class AuthorizeController{
     @Autowired
     private GithubProvider githubProvider;
 
-    @Value("589910df180907716fed")
+    @Value("${github.client.id}")
     private String clientId;
 
-    @Value("222901d9ad93739955156be0f5b37e78cd25741b")
+    @Value("${github.client.secret}")
     private String clientSecret;
 
-    @Value("http://localhost:11777/callback")
+    @Value("${github.redirect.uri}")
     private String redirectUri;
 
     /**

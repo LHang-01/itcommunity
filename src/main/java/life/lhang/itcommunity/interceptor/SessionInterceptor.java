@@ -34,7 +34,7 @@ public class SessionInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         //设置 context 级别的属性
-        //request.getServletContext().setAttribute("redirectUri", redirectUri);
+        request.getServletContext().setAttribute("redirectUri", redirectUri);
         Cookie[] cookies = request.getCookies();
         if (cookies != null && cookies.length != 0)
             for (Cookie cookie : cookies) {

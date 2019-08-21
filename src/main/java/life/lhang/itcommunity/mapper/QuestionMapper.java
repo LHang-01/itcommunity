@@ -23,12 +23,19 @@ public interface QuestionMapper{
     
 
     /**
-     * 此条语句可以对不含有特殊字符的语句进行模糊查询，
-     * 但是如果tag里面含有c++这样的标签，会报错，因为+在正则查询中是有特殊含义的
+     * 注意当有几个句子拼接在一起的时候一定要注意空格的拼接
+     * 比如"and id != #{id}"+"and tag regexp #{tag}"->"id != #{id}and tag regexp #{tag}"
+     *   而"and id != #{id} "+"and tag regexp #{tag}"->"id != #{id} and tag regexp #{tag}"
      * @param question
      * @return
      */
-    @Select("select * from question where id != #{id} and tag regexp #{tag}")
+    @Select("<script>"+"select * from question"
+            +"<where>"
+            +"<if test=\"id != null\">and id != #{id} </if>"
+            +"<if test=\"tag != null and tag != ''\">and tag regexp #{tag}</if>"
+            +"</where>"
+            +"order by gmt_create desc limit 20"
+            +"</script>" )
     List<Question> selectRelated(Question question);
 
     @Update("update question set view_count = view_count + #{viewCount} where id =#{id}")
