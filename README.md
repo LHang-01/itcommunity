@@ -23,4 +23,5 @@ com.alibaba的fastjson简介:https://www.cnblogs.com/qiaoyeye/p/7730288.html
 
 Spring Boot log：https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-logging.html
 
+腾讯云对象存储官方文档：https://cloud.tencent.com/document/product/436/10199
 
