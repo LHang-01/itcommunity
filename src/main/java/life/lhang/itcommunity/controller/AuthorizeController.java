@@ -5,6 +5,7 @@ import life.lhang.itcommunity.dto.GithubUser;
 import life.lhang.itcommunity.mode.User;
 import life.lhang.itcommunity.provider.GithubProvider;
 import life.lhang.itcommunity.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
 @Controller
+@Slf4j
 public class AuthorizeController{
 
     @Autowired
@@ -31,7 +33,7 @@ public class AuthorizeController{
     @Value("${github.client.secret}")
     private String clientSecret;
 
-    @Value("${github.redirect.uri}")
+    @Value("${github.redirect.url}")
     private String redirectUri;
 
     /**
@@ -70,7 +72,7 @@ public class AuthorizeController{
             response.addCookie(cookie);
             return "redirect:/";
         }else{
-            //log.error("callback get github error,{}", githubUser);
+            log.error("callback get github error,{}", githubUser);
             // 登录失败，重新登录
             return "redirect:/";
         }
