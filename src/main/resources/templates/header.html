@@ -39,7 +39,7 @@
                     </li>
                     <!--当用户点击登陆时，开始第三方登录流程-->
                     <li th:if="${session.user == null}">
-                        <a th:href="@{https://github.com/login/oauth/authorize(client_id='589910df180907716fed',redirect_uri='http://localhost:11777/callback',scope='user',state=1)}">
+                        <a th:href="@{https://github.com/login/oauth/authorize(client_id='589910df180907716fed',redirect_uri='http://106.52.235.39/callback',scope='user',state=1)}">
                             <span th:text="登录"></span>
                         </a>
                     </li>
