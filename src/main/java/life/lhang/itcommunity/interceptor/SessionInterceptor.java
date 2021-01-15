@@ -23,7 +23,7 @@ public class SessionInterceptor implements HandlerInterceptor {
     @Autowired
     private UserMapper userMapper;
 
-    @Value("${github.redirect.uri}")
+    @Value("${github.redirect.url}")
     private String redirectUri;
 
     @Autowired
